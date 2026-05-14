@@ -1,37 +1,59 @@
-# Guess Who – Frontend
+# GuessWho — Frontend
 
-This repository contains the React frontend for the *Guess Who* game.
+React + Vite frontend for the GuessWho game. Supports multiplayer rooms and single-player vs AI.
 
-## Quick Start
+## Setup
 
 ```bash
-# Install dependencies
 npm install
-
-# Run the development server
+cp .env.example .env
 npm run dev
 ```
 
-The app will be available at `http://localhost:5173` (or another port if 5173 is busy).
-
-## Configuration
-
-- The backend API URL is read from the environment variable `VITE_API_URL`.
-- Create a `.env` file in the repository root (already provided) and set:
-  ```
-  VITE_API_URL=http://127.0.0.1:3001
-  ```
+The app runs at `http://localhost:5173` by default.
 
 ## Scripts
 
-| Script   | Description                         |
-|----------|-------------------------------------|
-| `dev`    | Starts Vite development server      |
-| `build`  | Bundles the app for production      |
-| `preview`| Serves the production build locally |
-| `lint`   | Runs ESLint on the source files     |
-| `deploy` | Deploys the build to GitHub Pages   |
+| Script | Description |
+|---|---|
+| `npm run dev` | Start Vite dev server |
+| `npm run build` | Production build |
+| `npm run preview` | Preview production build |
+| `npm run lint` | Run ESLint |
+| `npm run deploy` | Deploy to GitHub Pages |
 
-## License
+## Environment Variables
 
-MIT – see the root `LICENSE` file (if any) for details.
+| Variable | Default | Description |
+|---|---|---|
+| `VITE_API_URL` | `http://localhost:8000` | Backend API base URL |
+| `VITE_REQUEST_TIMEOUT` | `10000` | Fetch timeout in milliseconds |
+| `VITE_BASE_PATH` | `/guesswho/` | Base path for deployment (must match repo name for GitHub Pages) |
+
+## Game Modes
+
+- **Single Player**: Play solo against the AI. The AI picks a secret character, and you ask yes/no questions to narrow it down.
+- **Multiplayer**: Create or join a room with a 6-character code. Both players pick a secret character and take turns asking questions.
+
+## Project Structure
+
+```
+src/
+  main.jsx          # Entry point
+  App.jsx            # Screen router
+  App.css            # Component styles
+  index.css          # Global/reset styles
+  api/
+    index.js         # Fetch wrapper + all API calls
+  components/
+    ErrorMessage.jsx
+  context/
+    GameContext.jsx   # Global game state
+  hooks/
+    usePolling.js     # Interval-based data fetching
+  screens/
+    HomeScreen.jsx
+    PlayerSetupScreen.jsx
+    WaitingRoomScreen.jsx
+    ChatRoomScreen.jsx
+```
