@@ -1,4 +1,6 @@
-import { createContext, useContext, useState, useCallback } from "react";
+import { createContext, useContext, useState, useCallback, useEffect } from "react";
+import { useWebSocket } from "../hooks/useWebSocket";
+import { getWsUrl } from "../api";
 
 const GameContext = createContext(null);
 
@@ -14,6 +16,44 @@ export function GameProvider({ children }) {
   const [messages, setMessages] = useState([]);
   const [error, setError] = useState("");
   const [winner, setWinner] = useState(null);
+  const [currentPlayer, setCurrentPlayer] = useState(null);
+
+  const wsUrl = (() => {
+    if (screen === "waiting-room" && roomId) {
+      return getWsUrl(`/ws/room/${roomId}`);
+    }
+    if (screen === "chat-room") {
+      if (gameMode === "multi" && roomId) {
+        return getWsUrl(`/ws/room/${roomId}`);
+      }
+      if (gameMode === "single" && gameId) {
+        return getWsUrl(`/ws/singleplayer/${gameId}`);
+      }
+    }
+    return null;
+  })();
+
+  const wsEnabled = wsUrl !== null;
+  const { connected: wsConnected, lastMessage } = useWebSocket(wsUrl, wsEnabled);
+
+  useEffect(() => {
+    if (!lastMessage) return;
+    if (lastMessage.type === "state_update") {
+      const data = lastMessage.data;
+      if (data.history) {
+        setMessages(data.history);
+      }
+      if (data.winner !== undefined && data.winner !== null) {
+        setWinner(data.winner);
+      }
+      if (data.started !== undefined && data.started) {
+        setScreen("chat-room");
+      }
+      if (data.currentPlayer !== undefined) {
+        setCurrentPlayer(data.currentPlayer);
+      }
+    }
+  }, [lastMessage, setMessages, setWinner, setScreen]);
 
   const clearError = useCallback(() => setError(""), []);
 
@@ -29,6 +69,7 @@ export function GameProvider({ children }) {
     setMessages([]);
     setError("");
     setWinner(null);
+    setCurrentPlayer(null);
   }, []);
 
   const value = {
@@ -43,6 +84,8 @@ export function GameProvider({ children }) {
     messages, setMessages,
     error, setError, clearError,
     winner, setWinner,
+    currentPlayer,
+    wsConnected,
     resetToHome,
   };
 
