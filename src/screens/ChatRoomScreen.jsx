@@ -10,7 +10,7 @@ export function ChatRoomScreen() {
   const {
     gameMode, roomId, gameId,
     playerName, question, setQuestion,
-    messages, setMessages,
+    messages,
     error, setError, clearError,
     winner, setWinner, wsConnected,
     currentPlayer, resetToHome,

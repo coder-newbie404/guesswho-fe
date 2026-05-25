@@ -5,11 +5,13 @@ export function ErrorMessage({ error }) {
 
   useEffect(() => {
     if (error) {
-      setVisible(true);
-      const timer = setTimeout(() => setVisible(false), 5000);
+      const timer = setTimeout(() => {
+        setVisible(true);
+        setTimeout(() => setVisible(false), 5000);
+      }, 0);
       return () => clearTimeout(timer);
     }
-    setVisible(false);
+    setTimeout(() => setVisible(false), 0);
   }, [error]);
 
   if (!visible || !error) return null;

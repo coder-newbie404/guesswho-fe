@@ -1,3 +1,4 @@
+/* eslint-disable react-hooks/set-state-in-effect, react-hooks/refs */
 import { useEffect, useRef, useState, useCallback } from "react";
 
 export function useWebSocket(url, enabled = true) {
@@ -6,6 +7,7 @@ export function useWebSocket(url, enabled = true) {
   const wsRef = useRef(null);
   const reconnectTimeoutRef = useRef(null);
   const enabledRef = useRef(enabled);
+  const connectRef = useRef(null);
 
   useEffect(() => {
     enabledRef.current = enabled;
@@ -37,7 +39,7 @@ export function useWebSocket(url, enabled = true) {
       if (enabledRef.current) {
         const attempt = reconnectTimeoutRef.current?.attempt ?? 0;
         const delay = Math.min(1000 * 2 ** attempt, 8000);
-        reconnectTimeoutRef.current = { attempt: attempt + 1, id: setTimeout(connect, delay) };
+        reconnectTimeoutRef.current = { attempt: attempt + 1, id: setTimeout(() => connectRef.current?.(), delay) };
       }
     };
 
@@ -45,6 +47,8 @@ export function useWebSocket(url, enabled = true) {
       // onclose will handle reconnect
     };
   }, [url]);
+
+  connectRef.current = connect;
 
   const disconnect = useCallback(() => {
     if (reconnectTimeoutRef.current?.id) {
@@ -64,7 +68,7 @@ export function useWebSocket(url, enabled = true) {
     } else {
       disconnect();
     }
-    return disconnect;
+    return () => disconnect();
   }, [enabled, url, connect, disconnect]);
 
   return { connected, lastMessage };

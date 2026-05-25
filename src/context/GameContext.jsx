@@ -36,6 +36,7 @@ export function GameProvider({ children }) {
   const wsEnabled = wsUrl !== null;
   const { connected: wsConnected, lastMessage } = useWebSocket(wsUrl, wsEnabled);
 
+  /* eslint-disable react-hooks/set-state-in-effect -- reacting to external WebSocket messages */
   useEffect(() => {
     if (!lastMessage) return;
     if (lastMessage.type === "state_update") {
@@ -54,6 +55,7 @@ export function GameProvider({ children }) {
       }
     }
   }, [lastMessage, setMessages, setWinner, setScreen]);
+  /* eslint-enable react-hooks/set-state-in-effect */
 
   const clearError = useCallback(() => setError(""), []);
 

@@ -8,7 +8,7 @@ export function WaitingRoomScreen() {
   const {
     roomId, playerName, wsConnected,
     error, setError, clearError,
-    setScreen, setMessages, resetToHome,
+    setScreen, resetToHome,
   } = useGame();
 
   const [loading, setLoading] = useState(false);
