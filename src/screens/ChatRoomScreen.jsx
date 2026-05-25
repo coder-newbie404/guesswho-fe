@@ -70,64 +70,98 @@ export function ChatRoomScreen() {
   const inputDisabled = loading || (!isMyTurn && !winner);
 
   return (
-    <div className="page">
-      <button className="back-link" onClick={handleLeave} aria-label="Leave game">
-        &larr; Leave
-      </button>
-
-      {gameMode === "multi" && (
-        <span className="room-badge">{roomId}</span>
-      )}
-
-      <span className={`ws-status ${wsConnected ? "connected" : "disconnected"}`} />
-
-      <div
-        className={`turn-bar ${winner ? "waiting" : isMyTurn ? "my-turn" : "waiting"}`}
-        role="status"
-        aria-live="polite"
-      >
-        {winner
-          ? `Game Over! ${winner} wins!`
-          : isMyTurn
-            ? "Your turn \u2014 ask a yes/no question or guess"
-            : "Waiting for opponent\u2026"}
+    <div className="flex h-[calc(100vh-56px)] flex-col">
+      <div className="flex items-center justify-between border-b border-gray-200 bg-white px-4 py-2 dark:border-gray-700 dark:bg-gray-800">
+        <div className="flex items-center gap-2">
+          {gameMode === "multi" && (
+            <span className="rounded-md bg-gray-100 px-2 py-1 font-mono text-sm font-medium text-gray-600 dark:bg-gray-700 dark:text-gray-300">{roomId}</span>
+          )}
+          <div
+            className={`rounded-full px-3 py-1 text-sm font-medium ${
+              winner
+                ? "bg-yellow-100 text-yellow-700 dark:bg-yellow-900/30 dark:text-yellow-300"
+                : isMyTurn
+                  ? "bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-300"
+                  : "bg-gray-100 text-gray-500 dark:bg-gray-700 dark:text-gray-400"
+            }`}
+            role="status"
+            aria-live="polite"
+          >
+            {winner
+              ? `Game Over! ${winner} wins!`
+              : isMyTurn
+                ? "Your turn — ask a yes/no question or guess"
+                : "Waiting for opponent..."}
+          </div>
+        </div>
+        <div className="flex items-center gap-2">
+          <span className={`inline-block h-2 w-2 rounded-full ${wsConnected ? "bg-green-500" : "bg-red-500"}`} />
+          <button
+            onClick={handleLeave}
+            className="text-sm text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200 cursor-pointer"
+            aria-label="Leave game"
+          >
+            Leave
+          </button>
+        </div>
       </div>
 
-      <div className="chat-area" role="log" aria-live="polite">
-        {messages.length === 0 ? (
-          <div className="chat-empty">No questions yet</div>
-        ) : (
-          messages.map((msg, index) => (
-            <div key={index} className={`message ${msg.player === playerName ? "mine" : "theirs"}`}>
-              <div className="msg-player">{msg.player}</div>
-              <div className="msg-question">{msg.question}</div>
-              <div className="msg-answer">{msg.answer}</div>
-            </div>
-          ))
-        )}
-        <div ref={chatEndRef} />
+      <div className="flex-1 overflow-y-auto bg-gray-50 px-4 py-4 dark:bg-gray-900">
+        <div className="mx-auto max-w-2xl space-y-3">
+          {messages.length === 0 ? (
+            <div className="py-12 text-center text-gray-400 dark:text-gray-600">No questions yet</div>
+          ) : (
+            messages.map((msg, index) => (
+              <div
+                key={index}
+                className={`flex ${msg.player === playerName ? "justify-end" : "justify-start"}`}
+              >
+                <div className={`max-w-[75%] ${msg.player === playerName ? "order-2" : "order-1"}`}>
+                  <div className="mb-1 text-xs font-medium text-gray-500 dark:text-gray-400">
+                    {msg.player === playerName ? "You" : msg.player}
+                  </div>
+                  <div
+                    className={`rounded-2xl px-4 py-2 ${
+                      msg.player === playerName
+                        ? "rounded-br-sm bg-indigo-600 text-white dark:bg-indigo-500"
+                        : "rounded-bl-sm bg-gray-200 text-gray-900 dark:bg-gray-700 dark:text-gray-100"
+                    }`}
+                  >
+                    <div className="font-medium">{msg.question}</div>
+                    <div className={`mt-1 text-sm ${msg.player === playerName ? "text-indigo-200" : "text-gray-500 dark:text-gray-400"}`}>
+                      {msg.answer}
+                    </div>
+                  </div>
+                </div>
+              </div>
+            ))
+          )}
+          <div ref={chatEndRef} />
+        </div>
       </div>
 
-      <div className="input-row">
-        <Input
-          ref={inputRef}
-          placeholder="Ask yes/no or guess exact name"
-          value={question}
-          onChange={(e) => setQuestion(e.target.value)}
-          onKeyDown={handleKeyDown}
-          maxLength={200}
-          disabled={inputDisabled}
-          required
-          aria-label="Ask a question or guess the name"
-        />
-        <Button
-          onClick={handleSendQuestion}
-          loading={loading}
-          disabled={!question.trim() || inputDisabled}
-          aria-label="Send question"
-        >
-          Send
-        </Button>
+      <div className="border-t border-gray-200 bg-white px-4 py-3 dark:border-gray-700 dark:bg-gray-800">
+        <div className="mx-auto flex max-w-2xl gap-2">
+          <Input
+            ref={inputRef}
+            placeholder="Ask yes/no or guess exact name"
+            value={question}
+            onChange={(e) => setQuestion(e.target.value)}
+            onKeyDown={handleKeyDown}
+            maxLength={200}
+            disabled={inputDisabled}
+            required
+            aria-label="Ask a question or guess the name"
+          />
+          <Button
+            onClick={handleSendQuestion}
+            loading={loading}
+            disabled={!question.trim() || inputDisabled}
+            aria-label="Send question"
+          >
+            Send
+          </Button>
+        </div>
       </div>
 
       <ErrorMessage error={error} />
