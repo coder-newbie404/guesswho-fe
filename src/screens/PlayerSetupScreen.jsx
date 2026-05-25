@@ -45,48 +45,60 @@ export function PlayerSetupScreen() {
   };
 
   return (
-    <div className="page">
-      <button className="back-link" onClick={resetToHome} aria-label="Back to home">
+    <div className="mx-auto max-w-md px-4 py-8">
+      <button
+        onClick={resetToHome}
+        className="mb-6 text-sm text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200 cursor-pointer"
+        aria-label="Back to home"
+      >
         &larr; Back
       </button>
 
-      <section className="section">
-        <h2 className="section-title">Player Setup</h2>
+      <div className="rounded-xl bg-white p-6 shadow-md dark:bg-gray-800">
+        <h2 className="mb-6 text-xl font-semibold text-gray-900 dark:text-white">Player Setup</h2>
 
-        <div className="room-id-box" onClick={handleCopy} role="button" tabIndex={0} aria-label="Copy room ID">
-          <div className="room-id-label">Room ID</div>
-          <div className="room-id-value">{roomId}</div>
-          <div className="room-id-hint">Click to copy</div>
-          {copied && <div className="copied-toast">Copied!</div>}
-        </div>
-
-        <Input
-          placeholder="Your Name"
-          value={playerName}
-          onChange={(e) => setPlayerName(e.target.value)}
-          onKeyDown={handleKeyDown}
-          maxLength={20}
-          required
-          aria-label="Player name"
-        />
-        <Input
-          placeholder="Your Secret Character"
-          value={secret}
-          onChange={(e) => setSecret(e.target.value)}
-          onKeyDown={handleKeyDown}
-          maxLength={50}
-          required
-          aria-label="Secret character"
-        />
-        <Button
-          onClick={handleRegister}
-          loading={loading}
-          disabled={!playerName.trim() || !secret.trim()}
-          aria-label="Join game"
+        <button
+          onClick={handleCopy}
+          className="mb-6 w-full cursor-pointer rounded-lg border-2 border-dashed border-gray-300 bg-gray-50 p-4 text-center transition-colors hover:border-indigo-400 hover:bg-indigo-50 dark:border-gray-600 dark:bg-gray-700/50 dark:hover:border-indigo-500 dark:hover:bg-indigo-900/20"
+          aria-label="Copy room ID"
         >
-          Join Game
-        </Button>
-      </section>
+          <div className="text-sm text-gray-500 dark:text-gray-400">Room ID</div>
+          <div className="mt-1 font-mono text-3xl font-bold tracking-widest text-gray-900 dark:text-white">{roomId}</div>
+          <div className="mt-1 text-xs text-gray-400 dark:text-gray-500">
+            {copied ? "Copied!" : "Click to copy"}
+          </div>
+        </button>
+
+        <div className="space-y-3">
+          <Input
+            placeholder="Your Name"
+            value={playerName}
+            onChange={(e) => setPlayerName(e.target.value)}
+            onKeyDown={handleKeyDown}
+            maxLength={20}
+            required
+            aria-label="Player name"
+          />
+          <Input
+            placeholder="Your Secret Character"
+            value={secret}
+            onChange={(e) => setSecret(e.target.value)}
+            onKeyDown={handleKeyDown}
+            maxLength={50}
+            required
+            aria-label="Secret character"
+          />
+          <Button
+            onClick={handleRegister}
+            loading={loading}
+            disabled={!playerName.trim() || !secret.trim()}
+            className="w-full"
+            aria-label="Join game"
+          >
+            Join Game
+          </Button>
+        </div>
+      </div>
 
       <ErrorMessage error={error} />
     </div>
