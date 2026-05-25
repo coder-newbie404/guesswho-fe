@@ -74,3 +74,9 @@ export function askSingleplayer(gameId, question) {
 export function getSingleplayerGame(gameId) {
   return request(`/singleplayer/${gameId}`);
 }
+
+export function getWsUrl(path) {
+  const apiUrl = import.meta.env.VITE_API_URL || "http://localhost:8000";
+  const wsBase = apiUrl.replace(/^http/, "ws");
+  return `${wsBase}${path}`;
+}
