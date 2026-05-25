@@ -1,7 +1,6 @@
-import { useState, useCallback, useEffect, useRef } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useGame } from "../context/GameContext";
-import { ask, getRoom, askSingleplayer, getSingleplayerGame } from "../api";
-import { usePolling } from "../hooks/usePolling";
+import { ask, askSingleplayer } from "../api";
 import { Button } from "../components/Button";
 import { Input } from "../components/Input";
 import { GameOverOverlay } from "../components/GameOverOverlay";
@@ -13,31 +12,13 @@ export function ChatRoomScreen() {
     playerName, question, setQuestion,
     messages, setMessages,
     error, setError, clearError,
-    winner, setWinner, resetToHome,
+    winner, setWinner, wsConnected,
+    currentPlayer, resetToHome,
   } = useGame();
 
   const [loading, setLoading] = useState(false);
   const inputRef = useRef(null);
   const chatEndRef = useRef(null);
-
-  const fetchRoom = useCallback(
-    () => gameMode === "multi" ? getRoom(roomId) : getSingleplayerGame(gameId),
-    [gameMode, roomId, gameId]
-  );
-
-  const roomData = usePolling(fetchRoom, 2000);
-
-  useEffect(() => {
-    if (roomData?.history) {
-      setMessages(roomData.history);
-    }
-  }, [roomData?.history, setMessages]);
-
-  useEffect(() => {
-    if (roomData?.winner && !winner) {
-      setWinner(roomData.winner);
-    }
-  }, [roomData?.winner, winner, setWinner]);
 
   useEffect(() => {
     chatEndRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -47,7 +28,7 @@ export function ChatRoomScreen() {
     inputRef.current?.focus();
   }, []);
 
-  const isMyTurn = gameMode === "single" || roomData?.currentPlayer === playerName;
+  const isMyTurn = gameMode === "single" || currentPlayer === playerName;
 
   const handleSendQuestion = async () => {
     if (!question.trim() || loading) return;
@@ -59,9 +40,6 @@ export function ChatRoomScreen() {
         data = await askSingleplayer(gameId, question);
       } else {
         data = await ask(roomId, playerName, question);
-      }
-      if (data.room?.history) {
-        setMessages(data.room.history);
       }
       setQuestion("");
       if (data.winner) {
@@ -100,6 +78,8 @@ export function ChatRoomScreen() {
       {gameMode === "multi" && (
         <span className="room-badge">{roomId}</span>
       )}
+
+      <span className={`ws-status ${wsConnected ? "connected" : "disconnected"}`} />
 
       <div
         className={`turn-bar ${winner ? "waiting" : isMyTurn ? "my-turn" : "waiting"}`}
