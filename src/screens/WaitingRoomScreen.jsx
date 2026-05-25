@@ -1,34 +1,18 @@
-import { useState, useCallback, useEffect } from "react";
+import { useState } from "react";
 import { useGame } from "../context/GameContext";
-import { ready, getRoom } from "../api";
-import { usePolling } from "../hooks/usePolling";
+import { ready } from "../api";
 import { Button } from "../components/Button";
 import { ErrorMessage } from "../components/ErrorMessage";
 
 export function WaitingRoomScreen() {
   const {
-    roomId, playerName,
+    roomId, playerName, wsConnected,
     error, setError, clearError,
     setScreen, setMessages, resetToHome,
   } = useGame();
 
   const [loading, setLoading] = useState(false);
   const [copied, setCopied] = useState(false);
-
-  const fetchRoom = useCallback(() => getRoom(roomId), [roomId]);
-  const roomData = usePolling(fetchRoom, 2000);
-
-  useEffect(() => {
-    if (roomData?.started) {
-      setScreen("chat-room");
-    }
-  }, [roomData?.started, setScreen]);
-
-  useEffect(() => {
-    if (roomData?.history) {
-      setMessages(roomData.history);
-    }
-  }, [roomData?.history, setMessages]);
 
   const handleCopy = () => {
     navigator.clipboard.writeText(roomId).then(() => {
@@ -85,6 +69,8 @@ export function WaitingRoomScreen() {
         >
           I'm Ready
         </Button>
+
+        <span className={`ws-status ${wsConnected ? "connected" : "disconnected"}`} />
 
         <div className="waiting-status">Game will start when both players are ready</div>
       </section>
