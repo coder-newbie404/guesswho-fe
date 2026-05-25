@@ -60,6 +60,19 @@ body {
   flex-direction: column;
 }
 
+.ws-status {
+  display: inline-block;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+}
+.ws-status.connected {
+  background-color: #22c55e;
+}
+.ws-status.disconnected {
+  background-color: #ef4444;
+}
+
 @media (max-width: 600px) {
   body { font-size: 15px; }
 }
