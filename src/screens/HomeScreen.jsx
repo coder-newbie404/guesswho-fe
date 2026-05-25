@@ -70,58 +70,72 @@ export function HomeScreen() {
   };
 
   return (
-    <div className="page">
-      <p className="tagline">Ask yes/no questions. Guess who they are.</p>
+    <div className="mx-auto max-w-2xl px-4 py-8">
+      <div className="mb-8 text-center">
+        <h1 className="text-4xl font-bold text-gray-900 dark:text-white">Guess Who?</h1>
+        <p className="mt-2 text-lg text-gray-500 dark:text-gray-400">Ask yes/no questions. Guess who they are.</p>
+      </div>
 
-      <section className="section">
-        <h2 className="section-title">Solo</h2>
-        <Input
-          placeholder="Your Name"
-          value={playerName}
-          onChange={(e) => setPlayerName(e.target.value)}
-          maxLength={20}
-          required
-          aria-label="Player name for single player"
-        />
-        <Button
-          onClick={handleSingleplayer}
-          loading={loading === "single"}
-          disabled={!playerName.trim()}
-          aria-label="Play vs AI"
-        >
-          Start Game
-        </Button>
-      </section>
+      <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
+        <div className="rounded-xl bg-white p-6 shadow-md transition-shadow hover:shadow-lg dark:bg-gray-800">
+          <div className="mb-4 text-3xl">🎯</div>
+          <h2 className="mb-4 text-xl font-semibold text-gray-900 dark:text-white">Solo</h2>
+          <div className="space-y-3">
+            <Input
+              placeholder="Your Name"
+              value={playerName}
+              onChange={(e) => setPlayerName(e.target.value)}
+              maxLength={20}
+              required
+              aria-label="Player name for single player"
+            />
+            <Button
+              onClick={handleSingleplayer}
+              loading={loading === "single"}
+              disabled={!playerName.trim()}
+              className="w-full"
+              aria-label="Play vs AI"
+            >
+              Start Game
+            </Button>
+          </div>
+        </div>
 
-      <hr className="divider" />
-
-      <section className="section">
-        <h2 className="section-title">Multiplayer</h2>
-        <Button
-          onClick={handleCreateRoom}
-          loading={loading === "create"}
-          disabled={loading !== null}
-          aria-label="Create new room"
-        >
-          Create Room
-        </Button>
-        <Input
-          placeholder="Enter Room ID"
-          value={joinRoomId}
-          onChange={(e) => setJoinRoomId(e.target.value.toUpperCase())}
-          maxLength={6}
-          required
-          aria-label="Room ID to join"
-        />
-        <Button
-          onClick={handleJoinRoom}
-          loading={loading === "join"}
-          disabled={loading !== null || !joinRoomId.trim()}
-          aria-label="Join existing room"
-        >
-          Join Room
-        </Button>
-      </section>
+        <div className="rounded-xl bg-white p-6 shadow-md transition-shadow hover:shadow-lg dark:bg-gray-800">
+          <div className="mb-4 text-3xl">👥</div>
+          <h2 className="mb-4 text-xl font-semibold text-gray-900 dark:text-white">Multiplayer</h2>
+          <div className="space-y-3">
+            <Button
+              onClick={handleCreateRoom}
+              loading={loading === "create"}
+              disabled={loading !== null}
+              variant="secondary"
+              className="w-full"
+              aria-label="Create new room"
+            >
+              Create Room
+            </Button>
+            <Input
+              placeholder="Enter Room ID"
+              value={joinRoomId}
+              onChange={(e) => setJoinRoomId(e.target.value.toUpperCase())}
+              maxLength={6}
+              required
+              aria-label="Room ID to join"
+            />
+            <Button
+              onClick={handleJoinRoom}
+              loading={loading === "join"}
+              disabled={loading !== null || !joinRoomId.trim()}
+              variant="secondary"
+              className="w-full"
+              aria-label="Join existing room"
+            >
+              Join Room
+            </Button>
+          </div>
+        </div>
+      </div>
 
       <ErrorMessage error={error} />
     </div>
