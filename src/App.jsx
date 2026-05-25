@@ -8,16 +8,26 @@ import { ChatRoomScreen } from "./screens/ChatRoomScreen";
 function ScreenRouter() {
   const { screen } = useGame();
 
+  let content;
   switch (screen) {
     case "chat-room":
-      return <ChatRoomScreen />;
+      content = <ChatRoomScreen />;
+      break;
     case "waiting-room":
-      return <WaitingRoomScreen />;
+      content = <WaitingRoomScreen />;
+      break;
     case "player-setup":
-      return <PlayerSetupScreen />;
+      content = <PlayerSetupScreen />;
+      break;
     default:
-      return <HomeScreen />;
+      content = <HomeScreen />;
   }
+
+  return (
+    <div className="min-h-screen bg-gray-50 text-gray-900 dark:bg-gray-900 dark:text-gray-100">
+      {content}
+    </div>
+  );
 }
 
 function App() {
