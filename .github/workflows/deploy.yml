@@ -1,0 +1,90 @@
+name: Deploy Frontend
+
+on:
+  push:
+    branches: [main]
+
+env:
+  AWS_REGION: ap-southeast-1
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout frontend
+        uses: actions/checkout@v4
+
+      - name: Checkout infra (for Dockerfile + nginx.conf)
+        uses: actions/checkout@v4
+        with:
+          repository: coder-newbie404/guesswho-infra
+          path: infra
+          token: ${{ secrets.GH_PAT }}
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Build frontend
+        env:
+          VITE_API_URL: ${{ secrets.APP_URL }}/api
+          VITE_BASE_PATH: /
+        run: npm run build
+
+      - name: Copy nginx.conf into dist
+        run: cp infra/frontend/nginx.conf dist/nginx.conf
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ env.AWS_REGION }}
+
+      - name: Login to ECR
+        id: ecr
+        uses: aws-actions/amazon-ecr-login@v2
+
+      - name: Build, tag, and push
+        env:
+          ECR_REGISTRY: ${{ steps.ecr.outputs.registry }}
+          IMAGE_TAG: ${{ github.sha }}
+        run: |
+          docker build \
+            -t $ECR_REGISTRY/guesswho-frontend:$IMAGE_TAG \
+            -t $ECR_REGISTRY/guesswho-frontend:latest \
+            -f infra/frontend/Dockerfile dist/
+          docker push $ECR_REGISTRY/guesswho-frontend:$IMAGE_TAG
+          docker push $ECR_REGISTRY/guesswho-frontend:latest
+
+      - name: Get EC2 instance ID
+        id: ec2
+        run: |
+          INSTANCE_ID=$(aws ec2 describe-instances \
+            --filters "Name=tag:Name,Values=guesswho-app" "Name=instance-state-name,Values=running" \
+            --query "Reservations[0].Instances[0].InstanceId" \
+            --output text)
+          echo "id=$INSTANCE_ID" >> $GITHUB_OUTPUT
+
+      - name: Deploy via SSM
+        run: |
+          aws ssm send-command \
+            --instance-ids "${{ steps.ec2.outputs.id }}" \
+            --document-name "AWS-RunShellScript" \
+            --parameters 'commands=[
+              "set -e",
+              "cd /opt/guesswho",
+              "aws ecr get-login-password --region ${{ env.AWS_REGION }} | docker login --username AWS --password-stdin ${{ steps.ecr.outputs.registry }}",
+              "docker-compose pull frontend",
+              "docker-compose up -d frontend"
+            ]' \
+            --timeout-seconds 120 \
+            --region ${{ env.AWS_REGION }}
+
+      - name: Wait for deployment
+        run: sleep 5
