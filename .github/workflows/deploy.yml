@@ -68,10 +68,18 @@ jobs:
           INSTANCE_ID=$(aws ec2 describe-instances \
             --filters "Name=tag:Name,Values=guesswho-app" "Name=instance-state-name,Values=running" \
             --query "Reservations[0].Instances[0].InstanceId" \
-            --output text)
-          echo "id=$INSTANCE_ID" >> $GITHUB_OUTPUT
+            --output text 2>/dev/null || echo "None")
+          if [ "$INSTANCE_ID" = "None" ] || [ -z "$INSTANCE_ID" ]; then
+            echo "id=" >> $GITHUB_OUTPUT
+            echo "found=false" >> $GITHUB_OUTPUT
+            echo "::warning::No running EC2 instance found with tag Name=guesswho-app. Skipping deploy."
+          else
+            echo "id=$INSTANCE_ID" >> $GITHUB_OUTPUT
+            echo "found=true" >> $GITHUB_OUTPUT
+          fi
 
       - name: Deploy via SSM
+        if: steps.ec2.outputs.found == 'true'
         run: |
           aws ssm send-command \
             --instance-ids "${{ steps.ec2.outputs.id }}" \
@@ -87,4 +95,5 @@ jobs:
             --region ${{ env.AWS_REGION }}
 
       - name: Wait for deployment
+        if: steps.ec2.outputs.found == 'true'
         run: sleep 5
