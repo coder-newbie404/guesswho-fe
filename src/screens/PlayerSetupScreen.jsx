@@ -17,10 +17,33 @@ export function PlayerSetupScreen() {
   const [copied, setCopied] = useState(false);
 
   const handleCopy = () => {
-    navigator.clipboard.writeText(roomId).then(() => {
+    const onSuccess = () => {
       setCopied(true);
       setTimeout(() => setCopied(false), 2000);
-    });
+    };
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      navigator.clipboard.writeText(roomId).then(onSuccess).catch(() => {
+        fallbackCopy(roomId, onSuccess);
+      });
+    } else {
+      fallbackCopy(roomId, onSuccess);
+    }
+  };
+
+  const fallbackCopy = (text, onSuccess) => {
+    const ta = document.createElement("textarea");
+    ta.value = text;
+    ta.style.position = "fixed";
+    ta.style.left = "-9999px";
+    document.body.appendChild(ta);
+    ta.select();
+    try {
+      document.execCommand("copy");
+      onSuccess();
+    } catch {
+      onSuccess();
+    }
+    document.body.removeChild(ta);
   };
 
   const handleRegister = async () => {
@@ -57,17 +80,23 @@ export function PlayerSetupScreen() {
       <div className="rounded-xl bg-white p-6 shadow-md dark:bg-gray-800">
         <h2 className="mb-6 text-xl font-semibold text-gray-900 dark:text-white">Player Setup</h2>
 
-        <button
+        <div
           onClick={handleCopy}
-          className="mb-6 w-full cursor-pointer rounded-lg border-2 border-dashed border-gray-300 bg-gray-50 p-4 text-center transition-colors hover:border-indigo-400 hover:bg-indigo-50 dark:border-gray-600 dark:bg-gray-700/50 dark:hover:border-indigo-500 dark:hover:bg-indigo-900/20"
-          aria-label="Copy room ID"
+          className="mb-6 w-full cursor-pointer rounded-lg border-2 border-dashed border-gray-300 bg-gray-50 p-4 text-center transition-colors hover:border-indigo-400 hover:bg-indigo-50 dark:border-gray-600 dark:bg-gray-700/50 dark:hover:border-indigo-500 dark:hover:bg-indigo-900/20 relative"
         >
+          <span
+            onClick={handleCopy}
+            className="absolute right-2 top-1 cursor-pointer text-xs text-gray-400 hover:text-indigo-500 dark:text-gray-500 dark:hover:text-indigo-400"
+            title="Copy room ID"
+          >
+            📋
+          </span>
           <div className="text-sm text-gray-500 dark:text-gray-400">Room ID</div>
-          <div className="mt-1 font-mono text-3xl font-bold tracking-widest text-gray-900 dark:text-white">{roomId}</div>
+          <div className="mt-1 font-mono text-3xl font-bold tracking-widest text-gray-900 dark:text-white select-text">{roomId}</div>
           <div className="mt-1 text-xs text-gray-400 dark:text-gray-500">
             {copied ? "Copied!" : "Click to copy"}
           </div>
-        </button>
+        </div>
 
         <div className="space-y-3">
           <Input
