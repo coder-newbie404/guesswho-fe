@@ -1,6 +1,7 @@
 import { createContext, useContext, useState, useCallback, useEffect } from "react";
 import { useWebSocket } from "../hooks/useWebSocket";
 import { getWsUrl } from "../api";
+import { saveSession, loadSession, clearSession } from "../utils/sessionStorage";
 
 const GameContext = createContext(null);
 
@@ -39,6 +40,51 @@ export function GameProvider({ children }) {
   const wsEnabled = wsUrl !== null;
   const { connected: wsConnected, lastMessage } = useWebSocket(wsUrl, wsEnabled);
 
+  useEffect(() => {
+    const saved = loadSession();
+    if (!saved) return;
+    const validateAndRestore = async () => {
+      try {
+        if (saved.gameMode === "single" && saved.gameId) {
+          const { getSingleplayerGame } = await import("../api");
+          await getSingleplayerGame(saved.gameId);
+        } else if (saved.gameMode === "multi" && saved.roomId) {
+          const { getRoom } = await import("../api");
+          await getRoom(saved.roomId);
+        }
+        setGameMode(saved.gameMode);
+        setRoomId(saved.roomId || "");
+        setGameId(saved.gameId || "");
+        setPlayerName(saved.playerName);
+        setSecret(saved.secret || "");
+        setMessages(saved.messages || []);
+        setHintsRemaining(saved.hintsRemaining ?? 3);
+        setMask(saved.mask || "");
+        setRevealedIndices(saved.revealedIndices || []);
+        setScreen("chat-room");
+      } catch {
+        clearSession();
+      }
+    };
+    validateAndRestore();
+  }, []);
+
+  useEffect(() => {
+    if (!gameMode || !playerName) return;
+    if (!roomId && !gameId) return;
+    saveSession({
+      gameMode,
+      roomId,
+      gameId,
+      playerName,
+      secret,
+      messages,
+      hintsRemaining,
+      mask,
+      revealedIndices,
+    });
+  }, [gameMode, roomId, gameId, playerName, secret, messages, hintsRemaining, mask, revealedIndices]);
+
   /* eslint-disable react-hooks/set-state-in-effect -- reacting to external WebSocket messages */
   useEffect(() => {
     if (!lastMessage) return;
@@ -66,9 +112,16 @@ export function GameProvider({ children }) {
   }, [lastMessage, setMessages, setWinner, setScreen]);
   /* eslint-enable react-hooks/set-state-in-effect */
 
+  useEffect(() => {
+    if (winner) {
+      clearSession();
+    }
+  }, [winner]);
+
   const clearError = useCallback(() => setError(""), []);
 
   const resetToHome = useCallback(() => {
+    clearSession();
     setScreen("home");
     setGameMode(null);
     setRoomId("");
