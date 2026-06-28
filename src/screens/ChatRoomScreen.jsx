@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from "react";
 import { useGame } from "../context/GameContext";
-import { ask, askSingleplayer } from "../api";
+import { ask, askSingleplayer, surrenderSingleplayer, surrenderMultiplayer, useHint as fetchHint } from "../api";
 import { Button } from "../components/Button";
 import { Input } from "../components/Input";
 import { GameOverOverlay } from "../components/GameOverOverlay";
@@ -14,6 +14,8 @@ export function ChatRoomScreen() {
     error, setError, clearError,
     winner, setWinner, wsConnected,
     currentPlayer, resetToHome,
+    hintsRemaining, setHintsRemaining,
+    mask, setMask,
   } = useGame();
 
   const [loading, setLoading] = useState(false);
@@ -66,6 +68,33 @@ export function ChatRoomScreen() {
     }
   };
 
+  const handleSurrender = async () => {
+    if (!window.confirm("Are you sure you want to surrender?")) return;
+    try {
+      let data;
+      if (gameMode === "single") {
+        data = await surrenderSingleplayer(gameId);
+      } else {
+        data = await surrenderMultiplayer(roomId, playerName);
+      }
+      if (data.winner) {
+        setWinner(data.winner);
+      }
+    } catch (err) {
+      setError(err.message || "Failed to surrender");
+    }
+  };
+
+  const handleHint = async () => {
+    try {
+      const data = await fetchHint(gameId);
+      setHintsRemaining(data.hints_remaining);
+      setMask(data.mask);
+    } catch (err) {
+      setError(err.message || "Failed to get hint");
+    }
+  };
+
   const turnCount = messages.length;
   const inputDisabled = loading || (!isMyTurn && !winner);
 
@@ -95,6 +124,24 @@ export function ChatRoomScreen() {
           </div>
         </div>
         <div className="flex items-center gap-2">
+          <button
+            onClick={handleSurrender}
+            disabled={!!winner || (gameMode === "multi" && !isMyTurn)}
+            className="rounded-md bg-red-100 px-3 py-1 text-sm font-medium text-red-700 hover:bg-red-200 disabled:opacity-50 disabled:cursor-not-allowed dark:bg-red-900/30 dark:text-red-300 dark:hover:bg-red-900/50 cursor-pointer"
+            aria-label="Surrender"
+          >
+            Surrender
+          </button>
+          {gameMode === "single" && !winner && (
+            <button
+              onClick={handleHint}
+              disabled={hintsRemaining <= 0}
+              className="rounded-md bg-yellow-100 px-3 py-1 text-sm font-medium text-yellow-700 hover:bg-yellow-200 disabled:opacity-50 disabled:cursor-not-allowed dark:bg-yellow-900/30 dark:text-yellow-300 dark:hover:bg-yellow-900/50 cursor-pointer"
+              aria-label="Use hint"
+            >
+              Hint ({hintsRemaining})
+            </button>
+          )}
           <span className={`inline-block h-2 w-2 rounded-full ${wsConnected ? "bg-green-500" : "bg-red-500"}`} />
           <button
             onClick={handleLeave}
@@ -110,8 +157,17 @@ export function ChatRoomScreen() {
         <div className="mx-auto max-w-2xl space-y-3">
           {messages.length === 0 ? (
             <div className="py-12 text-center text-gray-400 dark:text-gray-600">No questions yet</div>
-          ) : (
-            messages.map((msg, index) => (
+          ) : null}
+          {gameMode === "single" && mask && !winner && (
+            <div className="rounded-xl bg-yellow-50 px-4 py-3 text-center font-mono text-lg tracking-widest dark:bg-yellow-900/20">
+              {mask.split("").map((char, i) => (
+                <span key={i} className={char !== "_" ? "text-yellow-700 dark:text-yellow-300 font-bold" : "text-gray-300 dark:text-gray-600"}>
+                  {char}{" "}
+                </span>
+              ))}
+            </div>
+          )}
+          {messages.length > 0 && messages.map((msg, index) => (
               <div
                 key={index}
                 className={`flex ${msg.player === playerName ? "justify-end" : "justify-start"}`}
@@ -134,8 +190,7 @@ export function ChatRoomScreen() {
                   </div>
                 </div>
               </div>
-            ))
-          )}
+            ))}
           <div ref={chatEndRef} />
         </div>
       </div>
