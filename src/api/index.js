@@ -75,6 +75,21 @@ export function getSingleplayerGame(gameId) {
   return request(`/singleplayer/${gameId}`);
 }
 
+export function surrenderSingleplayer(gameId) {
+  return request(`/singleplayer/${gameId}/surrender`, { method: "POST" });
+}
+
+export function surrenderMultiplayer(roomId, playerName) {
+  return request("/surrender", {
+    method: "POST",
+    body: JSON.stringify({ roomId, playerName }),
+  });
+}
+
+export function useHint(gameId) {
+  return request(`/singleplayer/${gameId}/hint`, { method: "POST" });
+}
+
 export function getWsUrl(path) {
   const apiUrl = import.meta.env.VITE_API_URL || "http://localhost:8000";
   const wsBase = apiUrl.replace(/^http/, "ws");

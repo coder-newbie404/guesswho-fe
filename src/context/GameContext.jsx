@@ -17,6 +17,9 @@ export function GameProvider({ children }) {
   const [error, setError] = useState("");
   const [winner, setWinner] = useState(null);
   const [currentPlayer, setCurrentPlayer] = useState(null);
+  const [hintsRemaining, setHintsRemaining] = useState(3);
+  const [mask, setMask] = useState("");
+  const [revealedIndices, setRevealedIndices] = useState([]);
 
   const wsUrl = (() => {
     if (screen === "waiting-room" && roomId) {
@@ -53,6 +56,12 @@ export function GameProvider({ children }) {
       if (data.currentPlayer !== undefined) {
         setCurrentPlayer(data.currentPlayer);
       }
+      if (data.hints_remaining !== undefined) {
+        setHintsRemaining(data.hints_remaining);
+      }
+      if (data.mask !== undefined) {
+        setMask(data.mask);
+      }
     }
   }, [lastMessage, setMessages, setWinner, setScreen]);
   /* eslint-enable react-hooks/set-state-in-effect */
@@ -72,6 +81,9 @@ export function GameProvider({ children }) {
     setError("");
     setWinner(null);
     setCurrentPlayer(null);
+    setHintsRemaining(3);
+    setMask("");
+    setRevealedIndices([]);
   }, []);
 
   const value = {
@@ -87,6 +99,9 @@ export function GameProvider({ children }) {
     error, setError, clearError,
     winner, setWinner,
     currentPlayer,
+    hintsRemaining, setHintsRemaining,
+    mask, setMask,
+    revealedIndices, setRevealedIndices,
     wsConnected,
     resetToHome,
   };
