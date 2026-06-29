@@ -1,6 +1,6 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useGame } from "../context/GameContext";
-import { createRoom, joinRoom, startSingleplayer } from "../api";
+import { createRoom, joinRoom, startSingleplayer, fetchLeaderboard } from "../api";
 import { Button } from "../components/Button";
 import { Input } from "../components/Input";
 import { ErrorMessage } from "../components/ErrorMessage";
@@ -15,6 +15,13 @@ export function HomeScreen() {
   } = useGame();
 
   const [loading, setLoading] = useState(null);
+  const [leaderboard, setLeaderboard] = useState([]);
+
+  useEffect(() => {
+    fetchLeaderboard(10)
+      .then((data) => setLeaderboard(data.entries || []))
+      .catch(() => {});
+  }, []);
 
   const handleSingleplayer = async () => {
     if (!playerName.trim()) {
@@ -136,6 +143,32 @@ export function HomeScreen() {
           </div>
         </div>
       </div>
+
+      {leaderboard.length > 0 && (
+        <div className="mt-8">
+          <h2 className="mb-4 text-xl font-semibold text-gray-900 dark:text-white text-center">Leaderboard</h2>
+          <div className="rounded-xl bg-white shadow-md dark:bg-gray-800 overflow-hidden">
+            <table className="w-full">
+              <thead>
+                <tr className="border-b border-gray-200 dark:border-gray-700">
+                  <th className="px-4 py-2 text-left text-sm font-medium text-gray-500 dark:text-gray-400">#</th>
+                  <th className="px-4 py-2 text-left text-sm font-medium text-gray-500 dark:text-gray-400">Name</th>
+                  <th className="px-4 py-2 text-right text-sm font-medium text-gray-500 dark:text-gray-400">Turns</th>
+                </tr>
+              </thead>
+              <tbody>
+                {leaderboard.map((entry, index) => (
+                  <tr key={index} className="border-b border-gray-100 last:border-0 dark:border-gray-700/50">
+                    <td className="px-4 py-2 text-sm text-gray-700 dark:text-gray-300">{index + 1}</td>
+                    <td className="px-4 py-2 text-sm font-medium text-gray-900 dark:text-white">{entry.name}</td>
+                    <td className="px-4 py-2 text-sm text-right text-gray-700 dark:text-gray-300">{entry.turns}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      )}
 
       <ErrorMessage error={error} />
     </div>
