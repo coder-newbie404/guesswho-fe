@@ -1,6 +1,17 @@
+import { useRef, useEffect } from "react";
 import { Button } from "./Button";
+import { submitScore } from "../api";
 
-export function GameOverOverlay({ winner, turns, onPlayAgain }) {
+export function GameOverOverlay({ winner, turns, onPlayAgain, gameMode, playerName }) {
+  const submitted = useRef(false);
+
+  useEffect(() => {
+    if (gameMode === "single" && winner === playerName && !submitted.current) {
+      submitted.current = true;
+      submitScore(playerName, turns).catch(() => {});
+    }
+  }, [gameMode, winner, playerName, turns]);
+
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm" role="dialog" aria-label="Game over">
       <div className="mx-4 w-full max-w-sm rounded-2xl bg-white p-8 shadow-2xl dark:bg-gray-800">

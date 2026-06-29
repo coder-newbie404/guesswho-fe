@@ -226,6 +226,8 @@ export function ChatRoomScreen() {
           winner={winner}
           turns={turnCount}
           onPlayAgain={resetToHome}
+          gameMode={gameMode}
+          playerName={playerName}
         />
       )}
     </div>
