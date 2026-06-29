@@ -90,6 +90,17 @@ export function useHint(gameId) {
   return request(`/singleplayer/${gameId}/hint`, { method: "POST" });
 }
 
+export function fetchLeaderboard(top = 10) {
+  return request(`/leaderboard?top=${top}`);
+}
+
+export function submitScore(name, turns) {
+  return request("/leaderboard", {
+    method: "POST",
+    body: JSON.stringify({ name, turns }),
+  });
+}
+
 export function getWsUrl(path) {
   const apiUrl = import.meta.env.VITE_API_URL || "http://localhost:8000";
   const wsBase = apiUrl.replace(/^http/, "ws");
